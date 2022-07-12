@@ -44,7 +44,12 @@ public class CryptoCurrencyService {
     }
 
     private boolean exists(String symbol) {
-       return true;
+        Set<CryptoCurrency> currencies = getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES);
+        if (currencies == null || currencies.isEmpty()) {
+            return false;
+        } else {
+            return currencies.stream().anyMatch(currency -> currency.getSymbol().equals(symbol));
+        }
     }
 
     @Scheduled(fixedRate = 60000)
