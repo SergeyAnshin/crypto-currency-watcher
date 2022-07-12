@@ -2,8 +2,10 @@ package com.serg.ans.cryptocurrencywatcher.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serg.ans.cryptocurrencywatcher.dto.AvailableCryptoCurrency;
 import com.serg.ans.cryptocurrencywatcher.entity.CryptoCurrency;
 import com.serg.ans.cryptocurrencywatcher.entity.Currency;
+import com.serg.ans.cryptocurrencywatcher.mapper.CryptoCurrencyMapper;
 import com.serg.ans.cryptocurrencywatcher.repository.CryptoCurrencyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ResourceLoader;
@@ -42,7 +44,12 @@ public class CryptoCurrencyService {
     }
 
     private boolean exists(String symbol) {
-        return true;
+        Set<CryptoCurrency> currencies = getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES);
+        if (currencies == null || currencies.isEmpty()) {
+            return false;
+        } else {
+            return currencies.stream().anyMatch(currency -> currency.getSymbol().equals(symbol));
+        }
     }
 
     @Scheduled(fixedRate = 60000)
@@ -98,7 +105,11 @@ public class CryptoCurrencyService {
             return objectMapper.readValue(inputStream, new TypeReference<>(){});
         } catch (IOException e) {
             log.error(String.join(" ", "Problems with reading JSON file", fileName));
-            throw new RuntimeException(e);
+            return null;
         }
+    }
+
+    public Set<AvailableCryptoCurrency> findAvailableCryptoCurrency() {
+        return CryptoCurrencyMapper.mapToAvailableCryptoCurrencySet(getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES));
     }
 }
