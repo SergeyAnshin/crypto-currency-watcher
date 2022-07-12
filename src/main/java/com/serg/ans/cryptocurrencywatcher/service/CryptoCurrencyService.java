@@ -1,25 +1,36 @@
 package com.serg.ans.cryptocurrencywatcher.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serg.ans.cryptocurrencywatcher.entity.CryptoCurrency;
 import com.serg.ans.cryptocurrencywatcher.entity.Currency;
 import com.serg.ans.cryptocurrencywatcher.repository.CryptoCurrencyRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashSet;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CryptoCurrencyService {
     public static final String SPECIFIC_CURRENCY_INFORMATION_URL  = "https://api.coinlore.net/api/ticker/";
+    public static final String FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES  = "available-cryptocurrencies.json";
     private final CryptoCurrencyRepository repository;
+    private final ObjectMapper objectMapper;
+    private final ResourceLoader resourceLoader;
 
-    public CryptoCurrencyService(CryptoCurrencyRepository repository) {
+    public CryptoCurrencyService(CryptoCurrencyRepository repository, ObjectMapper objectMapper, ResourceLoader resourceLoader) {
         this.repository = repository;
+        this.objectMapper = objectMapper;
+        this.resourceLoader = resourceLoader;
     }
 
     public Optional<CryptoCurrency> findCurrentCurrencyPriceBySymbol(String symbol) throws IllegalArgumentException {
@@ -36,19 +47,14 @@ public class CryptoCurrencyService {
 
     @Scheduled(fixedRate = 60000)
     private void updateCurrentCurrencyPrices() {
-        System.out.println("ВЫПОЛНЯЕТСЯ");
-        Set<Currency> availableCurrencies = new HashSet<>() {{
-            add(CryptoCurrency.builder().id(80).symbol("A").build());
-            add(CryptoCurrency.builder().id(90).symbol("B").build());
-        }};
-        String url = createUrlToGetCurrentStateOfCurrencies(availableCurrencies);
+        String url = createUrlToGetCurrentStateOfCurrencies(getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES));
         List<CryptoCurrency> currencies = getCurrentStateForAvailableCurrenciesFromResource(url);
         if (currencies != null && !currencies.isEmpty()) {
             repository.saveAll(currencies);
         }
     }
 
-    private String createUrlToGetCurrentStateOfCurrencies(Set<Currency> currencies) {
+    private String createUrlToGetCurrentStateOfCurrencies(Set<? extends Currency> currencies) {
         if (currencies == null || currencies.isEmpty()) {
             return null;
         } else {
@@ -57,7 +63,7 @@ public class CryptoCurrencyService {
         }
     }
 
-    private String getParametersForCurrencies(Set<Currency> currencies) {
+    private String getParametersForCurrencies(Set<? extends Currency> currencies) {
         if (currencies == null || currencies.isEmpty()) {
             return null;
         } else {
@@ -77,7 +83,22 @@ public class CryptoCurrencyService {
 
     private List<CryptoCurrency> getCurrentStateForAvailableCurrenciesFromResource(String url) {
         RestTemplate restTemplate = new RestTemplate();
-        CryptoCurrency[] currencies = restTemplate.getForEntity(url, CryptoCurrency[].class).getBody();
-        return currencies == null || currencies.length == 0 ? null : List.of(currencies);
+        try {
+            CryptoCurrency[] currencies = restTemplate.getForEntity(url, CryptoCurrency[].class).getBody();
+            return currencies == null || currencies.length == 0 ? null : List.of(currencies);
+        } catch (RuntimeException exception) {
+            log.error("Problem with getting the current state of the cryptocurrency");
+            return null;
+        }
+    }
+
+    private Set<CryptoCurrency> getAvailableCurrenciesFromResources(String fileName) {
+        try (InputStream inputStream = resourceLoader.getResource(String.join("", "classpath:", fileName))
+                .getInputStream()) {
+            return objectMapper.readValue(inputStream, new TypeReference<>(){});
+        } catch (IOException e) {
+            log.error(String.join(" ", "Problems with reading JSON file", fileName));
+            throw new RuntimeException(e);
+        }
     }
 }
