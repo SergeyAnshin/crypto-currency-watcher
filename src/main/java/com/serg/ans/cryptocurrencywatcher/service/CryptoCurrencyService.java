@@ -29,7 +29,8 @@ public class CryptoCurrencyService {
     private final ObjectMapper objectMapper;
     private final ResourceLoader resourceLoader;
 
-    public CryptoCurrencyService(CryptoCurrencyRepository repository, ObjectMapper objectMapper, ResourceLoader resourceLoader) {
+    public CryptoCurrencyService(CryptoCurrencyRepository repository, ObjectMapper objectMapper,
+                                 ResourceLoader resourceLoader) {
         this.repository = repository;
         this.objectMapper = objectMapper;
         this.resourceLoader = resourceLoader;
@@ -111,5 +112,9 @@ public class CryptoCurrencyService {
 
     public Set<AvailableCryptoCurrency> findAvailableCryptoCurrency() {
         return CryptoCurrencyMapper.mapToAvailableCryptoCurrencySet(getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES));
+    }
+
+    public Optional<? extends Currency> findBySymbol(String symbol) {
+        return repository.findBySymbol(symbol);
     }
 }
