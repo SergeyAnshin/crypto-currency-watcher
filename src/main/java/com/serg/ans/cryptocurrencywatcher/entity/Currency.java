@@ -7,7 +7,8 @@ import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -23,5 +24,5 @@ public abstract class Currency {
     @Column(updatable = false)
     private String symbol;
     @JsonProperty("price_usd")
-    private String price;
+    private double price;
 }

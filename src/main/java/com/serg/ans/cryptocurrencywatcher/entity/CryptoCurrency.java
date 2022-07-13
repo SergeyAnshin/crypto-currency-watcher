@@ -4,8 +4,10 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Entity;
+import javax.persistence.PrimaryKeyJoinColumn;
 
 @Entity
+@PrimaryKeyJoinColumn(name = "currency_id")
 @NoArgsConstructor
 @SuperBuilder
 @Getter
