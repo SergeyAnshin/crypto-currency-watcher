@@ -11,10 +11,12 @@ public class CurrencyService {
     public static List<Currency> getObjectOnlyCurrencyType(Iterator entities) {
         List<Currency> currencies = new ArrayList<>();
         Object entity;
-        while (entities.hasNext()) {
-            entity = entities.next();
-            if (entity instanceof Currency) {
-                currencies.add((Currency) entity);
+        if (entities != null) {
+            while (entities.hasNext()) {
+                entity = entities.next();
+                if (entity instanceof Currency) {
+                    currencies.add((Currency) entity);
+                }
             }
         }
         return currencies;

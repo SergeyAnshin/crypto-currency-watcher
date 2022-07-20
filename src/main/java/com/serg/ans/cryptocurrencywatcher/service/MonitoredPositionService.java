@@ -34,12 +34,8 @@ public class MonitoredPositionService {
         }
     }
 
-    public Optional<MonitoredPosition> findByCurrency(Currency currency) {
-        return monitoredPositionRepository.findByCurrencyId(currency.getId());
-    }
-
     public void notify(String username, String symbol) throws IllegalArgumentException {
-        if (username == null || symbol == null) {
+        if (username == null || symbol == null || username.isBlank() || symbol.isBlank()) {
             throw new IllegalArgumentException();
         } else {
             Optional<? extends Currency> currency = cryptoCurrencyService.findBySymbol(symbol);
@@ -56,11 +52,10 @@ public class MonitoredPositionService {
     }
 
     public List<MonitoredPosition> findAllByCurrency(Currency currency) {
-        List<MonitoredPosition> monitoredPositions = monitoredPositionRepository.findAllByCurrencyId(currency.getId());
-        if (monitoredPositions == null || monitoredPositions.isEmpty()) {
+        if (currency == null || currency.getId() == 0) {
             return Collections.emptyList();
         } else {
-            return monitoredPositions;
+            return monitoredPositionRepository.findAllByCurrencyId(currency.getId());
         }
     }
 
@@ -80,10 +75,14 @@ public class MonitoredPositionService {
     }
 
     public void notifyAboutPriceChange(List<MonitoredPosition> monitoredPositions) {
-        monitoredPositions.forEach(monitoredPosition -> log.warn(String.join(", ",
+        monitoredPositions.forEach(monitoredPosition -> log.warn(getPriceChangeNotifyMessage(monitoredPosition)));
+    }
+
+    public String getPriceChangeNotifyMessage(MonitoredPosition monitoredPosition) {
+        return String.join(", ",
                 monitoredPosition.getCurrency().getSymbol(),
                 monitoredPosition.getUser().getUsername(),
                 String.valueOf(MathOperationService.getPercentageDifferenceBetweenNumbers(monitoredPosition.getCurrency().getPrice(),
-                        monitoredPosition.getStartMonitoringPrice())))));
+                        monitoredPosition.getStartMonitoringPrice())));
     }
 }
