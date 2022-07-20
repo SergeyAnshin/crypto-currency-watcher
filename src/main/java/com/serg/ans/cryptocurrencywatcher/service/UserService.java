@@ -15,6 +15,10 @@ public class UserService {
     }
 
     public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        if (username == null || username.isBlank()) {
+            return Optional.empty();
+        } else {
+            return userRepository.findByUsername(username);
+        }
     }
 }
