@@ -37,7 +37,7 @@ public class CryptoCurrencyService {
     }
 
     public Optional<CryptoCurrency> findCurrentCurrencyPriceBySymbol(String symbol) throws IllegalArgumentException {
-        if (symbol != null && exists(symbol)) {
+        if (symbol != null && !symbol.isBlank() && exists(symbol)) {
             return repository.findBySymbol(symbol);
         } else  {
             throw new IllegalArgumentException(String.join(": ", "No currency with symbol", symbol));
@@ -45,11 +45,12 @@ public class CryptoCurrencyService {
     }
 
     private boolean exists(String symbol) {
-        Set<CryptoCurrency> currencies = getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES);
-        if (currencies == null || currencies.isEmpty()) {
-            return false;
+        if (symbol == null || symbol.isBlank()) {
+           return true;
         } else {
-            return currencies.stream().anyMatch(currency -> currency.getSymbol().equals(symbol));
+            Set<CryptoCurrency> currencies = getAvailableCurrenciesFromResources(FILE_NAME_FOR_AVAILABLE_CRYPTOCURRENCIES);
+            return currencies != null && !currencies.isEmpty()
+                    && currencies.stream().anyMatch(currency -> currency.getSymbol().equals(symbol));
         }
     }
 
