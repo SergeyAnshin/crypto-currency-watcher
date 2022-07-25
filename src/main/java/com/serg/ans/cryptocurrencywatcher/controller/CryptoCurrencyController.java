@@ -6,15 +6,18 @@ import com.serg.ans.cryptocurrencywatcher.service.CryptoCurrencyService;
 import com.serg.ans.cryptocurrencywatcher.service.MonitoredPositionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Set;
 
 @RestController
 @RequestMapping("/crypto-currency")
 @Slf4j
+@Validated
 public class CryptoCurrencyController {
     private final CryptoCurrencyService cryptoCurrencyService;
     private final MonitoredPositionService monitoredPositionService;
@@ -25,7 +28,7 @@ public class CryptoCurrencyController {
     }
 
     @GetMapping("/price/findBySymbol")
-    public ResponseEntity<CryptoCurrency> findCurrentCurrencyPriceBySymbol(String symbol) {
+    public ResponseEntity<CryptoCurrency> findCurrentCurrencyPriceBySymbol(@NotBlank String symbol) {
         return cryptoCurrencyService.findCurrentCurrencyPriceBySymbol(symbol)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -37,7 +40,7 @@ public class CryptoCurrencyController {
     }
 
     @GetMapping("/notify")
-    public ResponseEntity<Object> notify(String username, String symbol) {
+    public ResponseEntity<Object> notify(@NotBlank String username, @NotBlank String symbol) {
         monitoredPositionService.notify(username, symbol);
         return ResponseEntity.ok().build();
     }
