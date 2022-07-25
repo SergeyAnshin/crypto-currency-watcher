@@ -64,30 +64,30 @@ public class CryptoCurrencyService {
     }
 
     private String createUrlToGetCurrentStateOfCurrencies(Set<? extends Currency> currencies) {
-        if (currencies == null || currencies.isEmpty()) {
-            return null;
-        } else {
+        String url = null;
+        if (currencies != null && !currencies.isEmpty()) {
             String urlParameters = getParametersForCurrencies(currencies);
-            return generateUrlToAnotherResource(SPECIFIC_CURRENCY_INFORMATION_URL, urlParameters);
+            url = generateUrlToAnotherResource(SPECIFIC_CURRENCY_INFORMATION_URL, urlParameters);
         }
+        return url;
     }
 
     private String getParametersForCurrencies(Set<? extends Currency> currencies) {
-        if (currencies == null || currencies.isEmpty()) {
-            return null;
-        } else {
-            return currencies.stream()
+        String parameters = null;
+        if (currencies != null && !currencies.isEmpty()) {
+            parameters = currencies.stream()
                     .map(currency -> String.valueOf(currency.getId()))
                     .collect(Collectors.joining(","));
         }
+        return parameters;
     }
 
     private String generateUrlToAnotherResource(String resourceUrl, String urlParameters) {
-        if (resourceUrl == null || urlParameters == null) {
-            return null;
-        } else {
-            return String.join("", resourceUrl, "?id=",  urlParameters);
+        String url = null;
+        if (resourceUrl != null && urlParameters != null) {
+            url = String.join("", resourceUrl, "?id=",  urlParameters);
         }
+        return url;
     }
 
     private List<CryptoCurrency> getCurrentStateForAvailableCurrenciesFromResource(String url) {
@@ -100,7 +100,7 @@ public class CryptoCurrencyService {
             return null;
         }
     }
-
+    
     private Set<CryptoCurrency> getAvailableCurrenciesFromResources(String fileName) {
         try (InputStream inputStream = resourceLoader.getResource(String.join("", "classpath:", fileName))
                 .getInputStream()) {
