@@ -37,7 +37,7 @@ public class CryptoCurrencyService {
     }
 
     public Optional<CryptoCurrency> findCurrentCurrencyPriceBySymbol(String symbol) throws IllegalArgumentException {
-        if (symbol != null && !symbol.isBlank() && exists(symbol)) {
+        if (exists(symbol)) {
             return repository.findBySymbol(symbol);
         } else  {
             throw new IllegalArgumentException(String.join(": ", "No currency with symbol", symbol));

@@ -35,19 +35,15 @@ public class MonitoredPositionService {
     }
 
     public void notify(String username, String symbol) throws IllegalArgumentException {
-        if (username == null || symbol == null || username.isBlank() || symbol.isBlank()) {
-            throw new IllegalArgumentException();
-        } else {
-            Optional<? extends Currency> currency = cryptoCurrencyService.findBySymbol(symbol);
-            Optional<User> user = userService.findByUsername(username);
-            if (currency.isPresent() && user.isPresent()) {
-                MonitoredPosition monitoredPosition = MonitoredPosition.builder()
-                        .currency(currency.get())
-                        .startMonitoringPrice(currency.get().getPrice())
-                        .user(user.get())
-                        .build();
-                save(monitoredPosition);
-            }
+        Optional<? extends Currency> currency = cryptoCurrencyService.findBySymbol(symbol);
+        Optional<User> user = userService.findByUsername(username);
+        if (currency.isPresent() && user.isPresent()) {
+            MonitoredPosition monitoredPosition = MonitoredPosition.builder()
+                    .currency(currency.get())
+                    .startMonitoringPrice(currency.get().getPrice())
+                    .user(user.get())
+                    .build();
+            save(monitoredPosition);
         }
     }
 
